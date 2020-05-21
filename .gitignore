@@ -36,3 +36,6 @@ nosetests.xml
 .pydevproject
 
 data.geojson
+
+# virtual environment
+ve
