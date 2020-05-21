@@ -9,7 +9,10 @@ import psycopg2
 
 parser = argparse.ArgumentParser(
     description="Create a GeoJSON from a PostGIS query.",
-    epilog="Example usage: python postgis2geojson.py -d awesomeData -h localhost -u user -p securePassword -t table -f id name geom -w 'columnA = columnB' -o myData --topojson",
+    epilog=(
+        "Example usage: python postgis2geojson.py -d awesomeData -H localhost -u user -p"
+        " securePassword -t table -f id name geom -w 'columnA = columnB' -o myData --topojson"
+    ),
 )
 
 parser.add_argument(
@@ -62,6 +65,10 @@ parser.add_argument(
     default="geom",
     type=str,
     help="Name of the geometry column. Defaults to 'geom'",
+)
+
+parser.add_argument(
+    "--skip", dest="skip", action="store_true", help="Force skipping of empty geometry fields.",
 )
 
 parser.add_argument(
@@ -161,6 +168,16 @@ def get_data():
 
     # For each row returned...
     for row in rows:
+        if not row[geom_index]:
+            if arguments.skip:
+                continue
+            else:
+                print(
+                    "Empty geometry field found. Use --skip to force skipping empty geometry"
+                    " fields."
+                )
+                return
+
         feature = {
             "type": "Feature",
             "geometry": json.loads(row[geom_index]),
